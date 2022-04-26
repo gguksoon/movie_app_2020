@@ -1,36 +1,61 @@
-function Food({foodName, picture}) {
-  return (
-    <div>
-      <img src={picture} alt="HTML5" style={{width:200}}/>
-      <h3>I like {foodName}</h3>
-    </div>
-  );
-}
+import React from 'react';
+import axios from 'axios';
+import Movie from './Movie';
+import './App.css'
 
-const foodILike = [
-  {
-    name: 'Kimchi',
-    image: 'https://health.chosun.com/site/data/img_dir/2021/09/01/2021090100998_0.jpg'
-  },
-  {
-    name: 'Samgyeopsal',
-    image: 'https://pds.joongang.co.kr/news/component/htmlphoto_mmdata/201702/27/117f5b49-1d09-4550-8ab7-87c0d82614de.jpg'
-  },
-  {
-    name: 'Bibimbap',
-    image: 'https://cf.creatrip.com/original/blog/8937/166lv4gz4u0ei0nv8oykcq5t61w2zdtf.jpg'
+class App extends React.Component {
+  state = {
+    isLoading: true,
+    movies: [],
   }
-];
+  componentDidMount() {
+    this.getMovies();
+  }
+  getMovies = async () => {
+    // 예전 객체 접근 방법
+    // const movies = await axios.get('https://yts-proxy.now.sh/list_movies.json');
 
-function App() {
-  return (
-    <div> 
-      <h1>Hello, React!</h1>
-      {foodILike.map(dish => (
-        <Food key={dish.name} foodName={dish.name} picture={dish.image}/>
-      ))}
-    </div>
-  );
+    // ES6 이 후 사용 가능한 구조 분해 할당 
+    const {
+      data: {
+        data: { movies },
+      },
+    } = await axios.get('https://yts-proxy.now.sh/list_movies.json?sort_by=rating');
+
+    // 앞의 movies는 state, 뒤의 movies는 위 구조 분해 할당으로 입력한 movies 변수
+    // this.setState({ movies: movies}); 
+    // ES6에서 위 처럼 state와 변수의 명이 같다면 아래 처럼 한 단어로 축약이 가능
+    this.setState({ movies, isLoading: false }); 
+  }
+  render() {
+    const { isLoading, movies } = this.state;
+    return (
+      <section className='container'>
+        {isLoading
+          ? (
+            <div className='loader'>
+              <span className='loader__text'>Loading...</span>
+            </div>
+          )
+          : (
+            <div className='movies'>
+              {movies.map((movie) => (
+                  <Movie 
+                    key={movie.id}
+                    id={movie.id}
+                    year={movie.year}
+                    title={movie.title}
+                    summary={movie.summary}
+                    poster={movie.medium_cover_image}
+                    genres={movie.genres}
+                  />
+              ))}
+            </div>
+          )
+        }
+      </section>
+    );
+  }
 }
 
 export default App;
